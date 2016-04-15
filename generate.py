@@ -5,6 +5,7 @@ import twitter
 import markov
 from htmlentitydefs import name2codepoint as n2c
 from local_settings import *
+from corpus import *
 
 def connect():
     api = twitter.Api(consumer_key=MY_CONSUMER_KEY,
@@ -61,6 +62,9 @@ if __name__=="__main__":
         guess = random.choice(range(ODDS))
     else:
         guess = 0
+
+    '''
+    ALL OF THIS IS MARKOV CHAIN STUFF WHICH WE DONT NEED
 
     if guess == 0:
         if STATIC_TEST==True:
@@ -135,3 +139,26 @@ if __name__=="__main__":
             print "TOO LONG: " + ebook_tweet
     else:
         print str(guess) + " No, sorry, not this time." #message if the random number fails.
+    '''
+
+    # Let's start up with, say, five different sentence constructions.
+
+    # The ADJECTIVE_STORE STORE_TYPE has moved to OTHER_NEIGHBOURHOOD. In its place is a new STORE_TYPE selling ADJECTIVE_ITEM ITEM.
+    # Check out the new window display at the ADJECTIVE_STORE STORE_TYPE! It's a rare NATIONALITY ITEM.
+    # The NATIONALITY restaurant has been taken over by an ADJECTIVE_STORE STORE_TYPE. It still sells ITEM.
+
+    # Variables--
+    # ADJECTIVE_STORE
+    # STORE_TYPE
+    # OTHER_NEIGHBOURGOOD
+    # ADJECTIVE_ITEM
+    # ITEM
+    # NATIONALITY
+
+    # To do:
+
+    # Every TIME PERIOD the ADJECTIVE_STORE STORE_TYPE hosts ARTICLE + EVENT.
+
+    # TIME PERIOD
+    # EVENT
+    
