@@ -1,1 +1,1 @@
-worker: python ebooks.py
+worker: python generate.py
