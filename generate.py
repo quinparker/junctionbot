@@ -2,7 +2,6 @@ import random
 import re
 import sys
 import twitter
-import markov
 from htmlentitydefs import name2codepoint as n2c
 from local_settings import *
 from corpus import *
@@ -43,8 +42,6 @@ def filter_tweet(tweet):
             tweet.text = re.sub(item, entity(item), tweet.text)    
     tweet.text = re.sub(r'\xe9', 'e', tweet.text) #take out accented e
     return tweet.text
-                     
-                     
                                                     
 def grab_tweets(api, max_id=None):
     source_tweets=[]
@@ -56,96 +53,64 @@ def grab_tweets(api, max_id=None):
             source_tweets.append(tweet.text)
     return source_tweets, max_id
 
+def noart(x):
+    if str.startswith(x,"!"):
+        return str.lstrip(x,"!")
+    return x
+
+def art(x):
+    if str.startswith(x,"!"):
+        return "an " + str.lstrip(x,"!")
+    return "a " + str.lstrip(x,"!")
+
+def adj(x):
+    if str.startswith(x,"$"):
+        if x == "$nationality":
+            return random.choice(NATIONALITY)
+    return x
+
 if __name__=="__main__":
-    order = ORDER
     if DEBUG==False:
         guess = random.choice(range(ODDS))
     else:
         guess = 0
 
-    '''
-    ALL OF THIS IS MARKOV CHAIN STUFF WHICH WE DONT NEED
-
     if guess == 0:
-        if STATIC_TEST==True:
-            file = TEST_SOURCE
-            print ">>> Generating from {0}".format(file)
-            string_list = open(file).readlines()
-            for item in string_list:
-                source_tweets = item.split(",")    
-        else:
-            source_tweets = []
-            for handle in SOURCE_ACCOUNTS:
-                user=handle
-                api=connect()
-                max_id=None
-                for x in range(17)[1:]:
-                    source_tweets_iter, max_id = grab_tweets(api,max_id)
-                    source_tweets += source_tweets_iter
-                print "{0} tweets found in {1}".format(len(source_tweets), handle)
-                if len(source_tweets) == 0:
-                    print "Error fetching tweets from Twitter. Aborting."
-                    sys.exit()
-        mine = markov.MarkovChainer(order)
-        for tweet in source_tweets:
-            if re.search('([\.\!\?\"\']$)', tweet):
-                pass
+ 
+        api = connect()
+
+        x = random.randint(0,2)
+        if x == 0:
+            the_tweet = "The " + adj(random.choice(ADJECTIVE_STORE)) + " " + noart(random.choice(STORE_TYPE)) + " has moved to " + \
+            random.choice(OTHER_NEIGHBOURHOOD) + ". In its place is a new " + \
+            noart(random.choice(STORE_TYPE)) + " selling " + random.choice(ADJECTIVE_ITEM) + " " + \
+            random.choice(ITEMS)
+        if x == 1:
+            the_tweet = "Check out the new window display at the " + adj(random.choice(ADJECTIVE_STORE)) \
+            + " " + noart(random.choice(STORE_TYPE)) + ". "
+            y = random.randint(0, 1)
+            if y == 0:
+                the_tweet += "It's " + random.choice(DISPLAY_TYPE) + " " + random.choice(NATIONALITY) + " " + noart(random.choice(ITEM))
             else:
-                tweet+="."
-            mine.add_text(tweet)
-            
-        for x in range(0,10):
-            ebook_tweet = mine.generate_sentence()
+                the_tweet += "It's " + random.choice(DISPLAY_TYPE_P) + " " + random.choice(NATIONALITY) + " " + noart(random.choice(ITEMS))
+        if x == 2:
+            the_tweet = "The " + random.choice(NATIONALITY) + " restaurant has been taken over by " + \
+            art(random.choice(STORE_TYPE)) + ". It still sells " + random.choice(ITEMS)
 
-        #randomly drop the last word, as Horse_ebooks appears to do.
-        if random.randint(0,4) == 0 and re.search(r'(in|to|from|for|with|by|our|of|your|around|under|beyond)\s\w+$', ebook_tweet) != None: 
-           print "Losing last word randomly"
-           ebook_tweet = re.sub(r'\s\w+.$','',ebook_tweet) 
-           print ebook_tweet
-    
-        #if a tweet is very short, this will randomly add a second sentence to it.
-        if ebook_tweet != None and len(ebook_tweet) < 40:
-            rando = random.randint(0,10)
-            if rando == 0 or rando == 7: 
-                print "Short tweet. Adding another sentence randomly"
-                newer_tweet = mine.generate_sentence()
-                if newer_tweet != None:
-                    ebook_tweet += " " + mine.generate_sentence()
-                else:
-                    ebook_tweet = ebook_tweet
-            elif rando == 1:
-                #say something crazy/prophetic in all caps
-                print "ALL THE THINGS"
-                ebook_tweet = ebook_tweet.upper()
+        the_tweet += "."
 
-        #throw out tweets that match anything from the source account.
-        if ebook_tweet != None and len(ebook_tweet) < 110:
-            for tweet in source_tweets:
-                if ebook_tweet[:-1] not in tweet:
-                    continue
-                else: 
-                    print "TOO SIMILAR: " + ebook_tweet
-                    sys.exit()
-                          
+        if str.__len__(the_tweet) < 141:
             if DEBUG == False:
-                status = api.PostUpdate(ebook_tweet)
+                status = api.PostUpdate(the_tweet)
                 print status.text.encode('utf-8')
             else:
-                print ebook_tweet
-
-        elif ebook_tweet == None:
-            print "Tweet is empty, sorry."
-        else:
-            print "TOO LONG: " + ebook_tweet
-    else:
-        print str(guess) + " No, sorry, not this time." #message if the random number fails.
-    '''
+                print the_tweet
 
     # Let's start up with, say, five different sentence constructions.
 
     # The ADJECTIVE_STORE STORE_TYPE has moved to OTHER_NEIGHBOURHOOD. In its place is a new STORE_TYPE selling ADJECTIVE_ITEM ITEM.
-    # Check out the new window display at the ADJECTIVE_STORE STORE_TYPE! It's a rare NATIONALITY ITEM.
-    # The NATIONALITY restaurant has been taken over by an ADJECTIVE_STORE STORE_TYPE. It still sells ITEM.
+    # Check out the new window display at the ADJECTIVE_STORE STORE_TYPE! It's DISPLAY_TYPE NATIONALITY ITEM.
+    # The NATIONALITY restaurant has been taken over by an ADJECTIVE_STORE STORE_TYPE. It still sells ITEMS.
 
     # Variables--
     # ADJECTIVE_STORE
@@ -161,4 +126,3 @@ if __name__=="__main__":
 
     # TIME PERIOD
     # EVENT
-    
